@@ -34,10 +34,11 @@ The script asks five things: the domain (or `local`), an e-mail for Let's Encryp
 
 ```bash
 bash scripts/self-host.sh --local          # http://127.0.0.1:8787, codes in the relay's log
-bash scripts/self-host.sh --local --bind 0.0.0.0   # reachable from the phones on the same network
+bash scripts/self-host.sh --local --bind 0.0.0.0   # relay listens on all interfaces, but the console URL it prints stays 127.0.0.1
+bash scripts/self-host.sh --local --bind 192.168.x.x   # bind to this machine's LAN address: PUBLIC_BASE advertises it, so phones open the console directly
 ```
 
-By hand instead of the script: `cd cloud && cp .env.example .env`, fill in `CLOUD_DOMAIN`, `PUBLIC_BASE`, `ACME_EMAIL`, `CLOUD_SECRET`, `CLOUD_ADMIN_TOKEN`, `UPSTREAM_KEY` and the sender settings, then `docker compose up -d`; or, without Caddy, `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d`. The relay runs as uid 10001 inside its container, and `cloud/data`, the bind-mounted data directory, must belong to that uid on the host: `mkdir -p data && sudo chown -R 10001:10001 data` before the first start, and once more when upgrading from a relay whose image ran as root (the script does this for you; a relay that cannot write the directory says so at start and stops).
+By hand instead of the script: `cd cloud && cp .env.example .env`, fill in `CLOUD_DOMAIN`, `PUBLIC_BASE`, `ACME_EMAIL`, `CLOUD_SECRET`, `CLOUD_ADMIN_TOKEN`, `UPSTREAM_KEY` and the sender settings, then `docker compose up -d`; or, without Caddy, `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d`. To reach the relay from other machines on the same network, set `RELAY_BIND=0.0.0.0` (or the machine's LAN address) and `PUBLIC_BASE=http://<that address>:8787` in `cloud/.env` before starting, so the apps are pointed at a reachable address rather than loopback. The relay runs as uid 10001 inside its container, and `cloud/data`, the bind-mounted data directory, must belong to that uid on the host: `mkdir -p data && sudo chown -R 10001:10001 data` before the first start, and once more when upgrading from a relay whose image ran as root (the script does this for you; a relay that cannot write the directory says so at start and stops).
 
 Chat may use a different OpenAI-compatible provider while pictures and clips stay on
 Model Studio: put the chat endpoint and key in `UPSTREAM_BASE` / `UPSTREAM_KEY`, and
